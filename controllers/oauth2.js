@@ -4,7 +4,11 @@ var passport = require('passport')
 var User = require('../models/user');
 var Client = require('../models/client');
 var Token = require('../models/token');
+var RefreshToken = require('../models/refreshToken');
 var Code = require('../models/code');
+
+var { token_expires_in } = require('../app.cfg');
+token_expires_in = `${token_expires_in}s`;
 
 // Create OAuth 2.0 server
 var server = oauth2orize.createServer();
@@ -76,6 +80,7 @@ server.grant(oauth2orize.grant.token(function(client, user, ares, done) {
       value: uid(256),
       clientId: client.id,
       userId: user.id,
+      scope: ares,
     });
 
     token.save(function(err) {
@@ -105,14 +110,23 @@ server.exchange(oauth2orize.exchange.code(function(client, code, redirectUri, ca
       var token = new Token({
         value: uid(256),
         clientId: authCode.clientId,
-        userId: authCode.userId
+        userId: authCode.userId,
+      });
+
+      var refreshToken = new RefreshToken({
+        value: uid(256),
+        token: token.value,
       });
 
       // Save the access token and check for errors
       token.save(function (err) {
         if (err) { return callback(err); }
 
-        callback(null, token);
+        refreshToken.save(function(err2) {
+          if (err2) { return callback(err); }
+          callback(null, token, refreshToken, { 'expires_in': token_expires_in });
+        }) 
+        
       });
     });
   });
@@ -145,11 +159,21 @@ server.exchange(oauth2orize.exchange.password(function(client, username, passwor
               value: uid(256),
               clientId: localClient.id,
               userId: user._Id,
+              scope: scope,
+            });
+
+            var refreshToken = new RefreshToken({
+              value: uid(256),
+              token: token.value,
             });
 
             token.save(function(err) {
               if (err) { return callback(err); }
-              callback(null, token);
+
+              refreshToken.save(function(err2) {
+                if (err2) { return callback(err); }
+                callback(null, token, refreshToken, { 'expires_in': token_expires_in });
+              }) 
             });
         });
     });
@@ -169,7 +193,8 @@ server.exchange(oauth2orize.exchange.clientCredentials(function(client, scope, c
         // Create a new access token
         var token = new Token({
           value: uid(256),
-          clientId: localClient.id
+          clientId: localClient.id,
+          scope: scope,
         });
 
         // Save the access token and check for errors
@@ -180,6 +205,37 @@ server.exchange(oauth2orize.exchange.clientCredentials(function(client, scope, c
         });
 
     });
+}));
+
+server.exchange(oauth2orize.exchange.refreshToken(function(client, refreshToken, scope, callback) {
+  RefreshToken.findOne({ value: refreshToken }, function(err, accessTokenToRefresh) {
+    if (err) { return callback(err); }
+
+    Token.find({ value: accessTokenToRefresh.token }, function(err, accessToken) {
+      if (err) { return callback(err); }
+
+      var token = new Token({
+        value: uid(256),
+        clientId: client.id,
+        userId: accessTokenToRefresh.userId,
+        scope: scope,
+      });
+
+      var rToken = new RefreshToken({
+        value: uid(256),
+        token: token.value,
+      });
+
+      token.save(function(err) {
+        if (err) { return callback(err); }
+
+        rToken.save(function(err2) {
+          if (err2) { return callback(err); }
+          callback(null, token, rToken, { 'expires_in': token_expires_in });
+        }) 
+      });
+    })
+  })
 }));
 
 // user authorization endpoint

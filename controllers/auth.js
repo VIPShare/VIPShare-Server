@@ -100,7 +100,7 @@ passport.use(new BearerStrategy(
 
           // to keep this example simple, restricted scopes are not implemented,
           // and this is just for illustrative purposes
-          var info = { scope: '*' }
+          var info = { scope: token.scope, expiration: token.expiration }
           callback(null, client, info);
         });
       }
@@ -108,6 +108,20 @@ passport.use(new BearerStrategy(
   }
 ));
 
-exports.isAuthenticated = passport.authenticate(['local', 'bearer'], { session : false });
+var isAuthenticated = passport.authenticate(['local', 'bearer'], { session : false });
+exports.isAuthenticated = isAuthenticated;
 exports.isClientAuthenticated = passport.authenticate('basic', { session : false });
 exports.isBearerAuthenticated = passport.authenticate('bearer', { session: false });
+
+exports.isAppAuthenticated = [
+  isAuthenticated,
+  function(req, res, next) {
+    if ( req.authInfo.expiration < new Date().getTime() ) {
+      res.send(401);
+    } else if ( !req.authInfo || !req.authInfo.scope || req.authInfo.scope !== '*' && req.authInfo.scope.indexOf(scope) == -1 ) {
+      res.send(403);
+    } else {
+      next();
+    }
+  }
+];
