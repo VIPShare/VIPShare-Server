@@ -117,9 +117,9 @@ exports.isAppAuthenticated = [
   isAuthenticated,
   function(req, res, next) {
     if ( req.authInfo.expiration < new Date().getTime() ) {
-      res.send(401);
+      res.sendStatus(401);
     } else if ( !req.authInfo || !req.authInfo.scope || req.authInfo.scope !== '*' && req.authInfo.scope.indexOf(scope) == -1 ) {
-      res.send(403);
+      res.sendStatus(403);
     } else {
       next();
     }

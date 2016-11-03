@@ -232,7 +232,7 @@ server.exchange(oauth2orize.exchange.refreshToken(function(client, refreshToken,
         rToken.save(function(err2) {
           if (err2) { return callback(err); }
           callback(null, token, rToken, { 'expires_in': token_expires_in });
-        }) 
+        })
       });
     })
   })
