@@ -8,7 +8,7 @@ var RefreshToken = require('../models/refreshToken');
 var Code = require('../models/code');
 
 var { token_expires_in } = require('../app.cfg');
-token_expires_in = `${token_expires_in}s`;
+token_expires_in = token_expires_in * 100;    // s
 
 // Create OAuth 2.0 server
 var server = oauth2orize.createServer();
