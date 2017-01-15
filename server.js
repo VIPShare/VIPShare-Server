@@ -68,5 +68,15 @@ log.use(app);
 // Register all our routes with /api
 app.use('/api', router);
 
+// Handle 404
+app.use(function(req, res) {
+    res.status(404).json({ message: '亲，您是不是迷路了？' });
+});
+
+// Handle 500
+app.use(function(error, req, res, next) {
+    res.status(500).json({ message: '亲，不好的消息哦！' });
+});
+
 // Start the server
 app.listen(3000);
