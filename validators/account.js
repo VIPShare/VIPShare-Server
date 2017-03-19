@@ -1,7 +1,8 @@
-var validator = require('node-validator');
+var validator = require('validator');
 
 exports.beforeAdd = function(account) {
-  if (!account.type || !validator.isInt(account.type)) {
+  if (!account.type || !validator.isInt(`${account.type}`)) {
+
     return {
       message: '必须选择分享账户类型',
     }

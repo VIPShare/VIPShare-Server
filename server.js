@@ -11,6 +11,10 @@ var authController = require('./controllers/auth');
 var oauth2Controller = require('./controllers/oauth2');
 var clientController = require('./controllers/client');
 var appRouter = require('./router');
+var webUserController = require('./webControllers/user');
+var webMainControlelr = require('./webControllers/main');
+
+
 
 // Connect to the vipshare MongoDB
 mongoose.connect('mongodb://localhost:27017/vipshare');
@@ -40,6 +44,19 @@ app.use(passport.initialize());
 // Create our Express router
 var router = express.Router();
 
+var webRouter =express.Router();
+
+// router.route('/')
+//   .get(function(req, res, next) {
+//       res.render('login');
+//   });
+
+// router.route('/signup')
+//   .get(function(req, res, next) {
+//       res.render('signup');
+//   });
+
+
 // Create endpoint handlers for /users
 router.route('/users')
   .post(userController.postUsers)
@@ -56,8 +73,20 @@ router.route('/oauth2/authorize')
   .post(authController.isAuthenticated, oauth2Controller.decision);
 
 // Create endpoint handlers for oauth2 token
+// 获取token
 router.route('/oauth2/token')
   .post(authController.isClientAuthenticated, oauth2Controller.token);
+
+//页面-登录
+webRouter.route('/login')
+  .get(webUserController.login)
+  .post(webUserController.loginValidate);
+
+webRouter.route('/main')
+  .get(webMainControlelr.index);
+
+
+
 
 // Register app router
 appRouter(router, authController);
@@ -67,6 +96,8 @@ log.use(app);
 
 // Register all our routes with /api
 app.use('/api', router);
+app.use('/', webRouter);
+
 
 // Handle 404
 app.use(function(req, res) {
