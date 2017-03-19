@@ -15,6 +15,7 @@ var webUserController = require('./webControllers/user');
 var webMainControlelr = require('./webControllers/main');
 
 
+
 // Connect to the vipshare MongoDB
 mongoose.connect('mongodb://localhost:27017/vipshare');
 
@@ -42,6 +43,7 @@ app.use(passport.initialize());
 
 // Create our Express router
 var router = express.Router();
+
 var webRouter =express.Router();
 
 // router.route('/')
@@ -53,6 +55,7 @@ var webRouter =express.Router();
 //   .get(function(req, res, next) {
 //       res.render('signup');
 //   });
+
 
 // Create endpoint handlers for /users
 router.route('/users')
@@ -84,6 +87,7 @@ webRouter.route('/main')
 
 
 
+
 // Register app router
 appRouter(router, authController);
 
@@ -93,6 +97,7 @@ log.use(app);
 // Register all our routes with /api
 app.use('/api', router);
 app.use('/', webRouter);
+
 
 // Handle 404
 app.use(function(req, res) {

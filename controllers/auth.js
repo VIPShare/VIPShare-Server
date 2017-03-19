@@ -17,7 +17,10 @@ var Token = require('../models/token');
  */
 passport.use(new LocalStrategy(
   function(username, password, callback) {
+<<<<<<< HEAD
 
+=======
+>>>>>>> e5c6f7b8bdcb85f655c2bb074167593700fcd086
     User.findOne({ username: username }, function (err, user) {
       if (err) { return callback(err); }
 
@@ -36,7 +39,6 @@ passport.use(new LocalStrategy(
       });
     });
 
-    
   }
 ));
 
